@@ -1,4 +1,6 @@
+using EduScoring.Common.Storage;
 using EduScoring.Data;
+using EduScoring.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -8,8 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<CloudinaryService>();
+
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 
@@ -48,5 +51,52 @@ app.MapGet("/test-db", async (EduScoring.Data.AppDbContext dbContext) =>
         return Results.Problem(detail: ex.Message, title: "Kết nối thất bại ❌");
     }
 });
+//TEST SUBMISION IMAGE ENTITY
+app.MapPost("/create-test-submission", async (AppDbContext db) =>
+{
+    var submission = new Submission
+    {
+        ExamId = 1, // nhớ phải tồn tại
+        StudentId = null
+    };
+
+    db.Submissions.Add(submission);
+    await db.SaveChangesAsync();
+
+    return Results.Ok(submission.Id);
+});
+// TEST UPLOAD IMAGE TO CLOUDINARY
+app.MapPost("/test-upload", async (
+    IFormFile file,
+    CloudinaryService cloudService,
+    AppDbContext db) =>
+{
+    if (file == null || file.Length == 0)
+        return Results.BadRequest("File không hợp lệ!");
+
+    var url = await cloudService.UploadImageAsync(file);
+
+    if (string.IsNullOrEmpty(url))
+        return Results.BadRequest("Upload thất bại!");
+
+    // Fetch an existing submission from the database to link the image to
+    var submission = await db.Submissions.FirstOrDefaultAsync();
+
+    if (submission == null)
+        return Results.BadRequest("Không tìm thấy Submission nào trong Database để liên kết ảnh!");
+
+    var imgEntity = new SubmissionImage
+    {
+        ImageUrl = url,
+        PageNumber = 1,
+        SubmissionId = submission.Id
+    };
+
+    db.SubmissionImages.Add(imgEntity);
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new { Message = "OK 🚀", URL = url });
+
+}).DisableAntiforgery();
 
 await app.RunAsync();
