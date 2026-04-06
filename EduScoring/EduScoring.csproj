@@ -16,4 +16,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\" />
+    <Folder Include="Features\Auth\" />
+    <Folder Include="Features\Exams\" />
+    <Folder Include="Features\Rubrics\" />
+    <Folder Include="Features\Scoring\" />
+    <Folder Include="Features\Submissions\" />
+    <Folder Include="Features\Users\" />
+  </ItemGroup>
 </Project>
