@@ -480,3 +480,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Bỏ qua file chứa mật khẩu cục bộ
+appsettings.Development.json
+appsettings.*.json
+.env
