@@ -1,0 +1,6 @@
+@EduScoring_HostAddress = http://localhost:5261
+
+GET {{EduScoring_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
