@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" />
     <PackageReference Include="CloudinaryDotNet" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
@@ -19,13 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Common\Authentication\" />
     <Folder Include="Common\Middleware\" />
-    <Folder Include="Features\Auth\" />
-    <Folder Include="Features\Exams\" />
     <Folder Include="Features\Rubrics\" />
     <Folder Include="Features\Scoring\" />
     <Folder Include="Features\Submissions\" />
-    <Folder Include="Features\Users\" />
   </ItemGroup>
 </Project>
