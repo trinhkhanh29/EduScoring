@@ -24,6 +24,5 @@
     <Folder Include="Common\Middleware\" />
     <Folder Include="Features\Rubrics\" />
     <Folder Include="Features\Scoring\" />
-    <Folder Include="Features\Submissions\" />
   </ItemGroup>
 </Project>
