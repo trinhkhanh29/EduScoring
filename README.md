@@ -88,5 +88,3 @@ Access API docs at:
 
 * **Trinh Quoc Khanh**
 * GitHub: [https://github.com/trinhkhanh29](https://github.com/trinhkhanh29)
-
-```
