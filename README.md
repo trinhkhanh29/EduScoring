@@ -1,8 +1,9 @@
 <div align="center">
 
-# ĐỀ TÀI NGHIÊN CỨU KHOA HỌC 2026 (EduScoring_AI)
+# SCIENTIFIC RESEARCH PROJECT 2026 (EduScoring_AI)
 
-**HỆ THỐNG QUẢN LÝ VÀ CHẤM ĐIỂM TỰ ĐỘNG ỨNG DỤNG AI & OCR** *Giải pháp chuyển đổi số trong giáo dục, tự động hóa quy trình chấm bài thi tự luận.*
+**AI & OCR-BASED AUTOMATED ESSAY GRADING SYSTEM**  
+*A digital solution for automating essay assessment in education.*
 
 <br />
 
@@ -15,87 +16,77 @@
 ---
 
 <p align="center">
-  <b>SƠ ĐỒ TỔNG QUAN</b><br>
+  <b>OVERVIEW</b><br>
 </p>
 
-## 📌 Giới thiệu
+## 📌 Introduction
 
-**EduScoring** là hệ thống quản lý học tập tích hợp trí tuệ nhân tạo (AI) giúp hỗ trợ giảng viên trong việc số hóa và chấm điểm bài thi tự luận. Thay vì chấm tay hàng trăm bài thi, hệ thống cho phép sinh viên nộp ảnh bài làm qua Web hoặc Telegram, sau đó sử dụng công nghệ OCR và LLM để phân tích nội dung, đối chiếu đáp án (Rubrics) và đưa ra điểm số cùng nhận xét chi tiết.
+**EduScoring** is an AI-powered system that helps teachers digitize and automatically grade essay exams.  
+Students can submit their work via Web or Telegram, and the system uses OCR and LLM to analyze answers, compare them with rubrics, and generate scores with feedback.
 
-Dự án được xây dựng trên kiến trúc **Vertical Slice Architecture (VSA)** hiện đại, giúp hệ thống dễ dàng mở rộng và bảo trì.
+Built with **Vertical Slice Architecture (VSA)** for scalability and maintainability.
 
-## ✨ Chức năng nổi bật
+## ✨ Key Features
 
-  - **Quản lý đa người dùng**: Phân quyền Admin (Hệ thống), Teacher (Quản lý đề/chấm điểm), Student (Nộp bài/Xem kết quả).
-  - **Nộp bài đa nền tảng**: Hỗ trợ upload ảnh trực tiếp từ Web App hoặc thông qua Telegram Bot.
-  - **Số hóa bài thi (OCR)**: Tự động trích xuất nội dung từ ảnh chụp bài làm của sinh viên (Sử dụng LMM/OCR).
-  - **Chấm điểm thông minh**: Đối chiếu nội dung bài làm với bảng tiêu chí (Rubrics) để đưa ra điểm số khách quan.
-  - **Bảo mật JWT**: Hệ thống đăng nhập và phân quyền sử dụng JSON Web Token bảo mật chuẩn Enterprise.
-  - **Lưu trữ đám mây**: Tích hợp Cloudinary để quản lý kho ảnh bài thi và Supabase cho cơ sở dữ liệu PostgreSQL.
+- **Multi-role system**: Admin, Teacher, Student  
+- **Multi-platform submission**: Web & Telegram  
+- **OCR processing**: Extract text from images  
+- **Smart grading**: AI-based scoring with rubrics  
+- **Secure authentication**: JWT & BCrypt  
+- **Cloud storage**: Cloudinary (images), Supabase (PostgreSQL)
 
-## 🏗 Kiến trúc hệ thống (Vertical Slice)
+## 🏗 Architecture
 
-Hệ thống được tổ chức theo các lát cắt nghiệp vụ (Slices):
+- **Auth**: Login, register, JWT, password hashing  
+- **Exams**: Manage exams & grading rubrics  
+- **Submissions**: Upload and track submissions  
+- **Scoring**: (Phase 2) AI + OCR grading logic  
+- **Common & Data**: Shared configs, middleware, EF Core  
 
-  - **Auth Slice**: Đăng ký, đăng nhập, cấp phát Token và băm mật khẩu BCrypt.
-  - **Exams Slice**: Giảng viên tạo đề thi, quản lý bảng tiêu chí chấm điểm (Rubrics).
-  - **Submissions Slice**: Sinh viên nộp ảnh bài làm, quản lý trạng thái chấm điểm.
-  - **Scoring Slice**: (Phase 2) Xử lý logic AI, OCR và tính toán điểm số.
-  - **Common & Data**: Cấu hình dùng chung, Middleware và Entity Framework Core.
+## 🛠 Tech Stack
 
-## 🛠 Công nghệ sử dụng
+- **Backend**: .NET 10, ASP.NET Core Minimal API  
+- **Database**: PostgreSQL (Supabase)  
+- **Storage**: Cloudinary  
+- **Security**: JWT, BCrypt  
+- **AI/ML**: OCR + LLM (Gemini/GPT)  
+- **Architecture**: Vertical Slice Architecture  
 
-  - **Backend**: .NET 10 (C\#), ASP.NET Core Minimal API.
-  - **Database**: PostgreSQL (Hosted on **Supabase**).
-  - **Storage**: **Cloudinary** (Image Management).
-  - **Security**: JWT Authentication, BCrypt Password Hashing.
-  - **AI/ML**: OCR Engines, LLM (Gemini/GPT) cho việc phân tích ngữ nghĩa bài làm.
-  - **Architecture**: Vertical Slice Architecture, Entity Framework Core.
+## 🚀 Getting Started
 
-## 🚀 Hướng dẫn chạy dự án
-
-### 1\. Clone dự án
+### 1. Clone repository
 
 ```bash
 git clone https://github.com/trinhkhanh29/EduScoring.git
 cd EduScoring
-```
+````
 
-### 2\. Cấu hình môi trường
+### 2. Configure environment
 
-Mở file `appsettings.Development.json` và điền các thông tin sau:
+Update `appsettings.Development.json`:
 
-  - **ConnectionStrings**: Link kết nối Supabase của bạn.
-  - **JwtSettings**: Secret key (độ dài \> 32 ký tự), Issuer và Audience.
-  - **CloudinarySettings**: CloudName, ApiKey và ApiSecret.
+* ConnectionStrings (Supabase)
+* JwtSettings (Secret, Issuer, Audience)
+* CloudinarySettings
 
-### 3\. Cập nhật Cơ sở dữ liệu
+### 3. Update database
 
 ```powershell
 dotnet ef database update
 ```
 
-### 4\. Chạy Backend
+### 4. Run project
 
 ```powershell
 dotnet run --project EduScoring
 ```
 
-Truy cập `http://localhost:5261/scalar/v1` để xem tài liệu API chi tiết qua giao diện Scalar.
+Access API docs at:
+`http://localhost:5261/scalar/v1`
 
-## 📸 Demo luồng hoạt động
+## 👨‍💻 Author
 
-\<p align="center"\>
-\<b\>Giao diện API (Scalar Docs)\</b\><br>
-\<i\>Hệ thống Endpoint được tổ chức theo từng Feature nghiệp vụ.\</i\>
-\</p\>
+* **Trinh Quoc Khanh**
+* GitHub: [https://github.com/trinhkhanh29](https://github.com/trinhkhanh29)
 
-\<p align="center"\>
-\<b\>Luồng nộp bài (Postman Test)\</b\><br>
-\<i\>Sinh viên đẩy ảnh lên và nhận kết quả upload Real-time.\</i\>
-\</p\>
-
-## 👨‍💻 Tác giả & Nhóm nghiên cứu
-
-  * **Tác giả:** Trịnh Quốc Khánh
-  * **GitHub:** [trinhkhanh29](https://github.com/trinhkhanh29)
+```
