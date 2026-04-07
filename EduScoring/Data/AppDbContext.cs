@@ -101,5 +101,11 @@ public class AppDbContext : DbContext
             .HasOne(x => x.Submission)
             .WithMany()
             .HasForeignKey(x => x.SubmissionId);
+
+        modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = EduScoring.Common.Authentication.AppRoles.Admin, Description = "Quản trị viên hệ thống" },
+                new Role { Id = 2, Name = EduScoring.Common.Authentication.AppRoles.Teacher, Description = "Giảng viên (Tạo đề, xem điểm)" },
+                new Role { Id = 3, Name = EduScoring.Common.Authentication.AppRoles.Student, Description = "Sinh viên (Nộp bài)" }
+        );
     }
 }
