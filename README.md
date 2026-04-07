@@ -1,13 +1,18 @@
-<h1 align="center">ĐỀ TÀI NGHIÊN CỨU KHOA HỌC 2025 (SmartLock_FaceRecognition)</h1>
-<p align="center">
-  <b>SƠ ĐỒ TỔNG QUAN</b><br>
-  <img src="https://github.com/user-attachments/assets/9ba958ce-6b52-41a2-9728-0c8279157360" width="400">
-</p>
+<div align="center">
 
-<img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt="Dotnet 10">
-<img src="https://img.shields.io/badge/PostgreSQL-Supabase-336791?logo=postgresql" alt="Supabase">
-<img src="https://img.shields.io/badge/Cloudinary-Image_Storage-F5AF23?logo=cloudinary" alt="Cloudinary">
-</p>
+# ĐỀ TÀI NGHIÊN CỨU KHOA HỌC 2026 (EduScoring_AI)
+
+**HỆ THỐNG QUẢN LÝ VÀ CHẤM ĐIỂM TỰ ĐỘNG ỨNG DỤNG AI & OCR** *Giải pháp chuyển đổi số trong giáo dục, tự động hóa quy trình chấm bài thi tự luận.*
+
+<br />
+
+[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![Supabase](https://img.shields.io/badge/PostgreSQL-Supabase-336791?logo=postgresql&logoColor=white)](https://supabase.com/)
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-Image_Storage-F5AF23?logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+
+</div>
+
+---
 
 <p align="center">
   <b>SƠ ĐỒ TỔNG QUAN</b><br>
