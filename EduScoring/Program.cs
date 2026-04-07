@@ -1,6 +1,7 @@
 using EduScoring.Common.Extensions;
 using EduScoring.Features.Auth;
 using EduScoring.Features.Exams;
+using EduScoring.Features.Submissions;
 using EduScoring.Features.System;
 using EduScoring.Features.Users;
 
@@ -28,12 +29,13 @@ app.UseAuthorization();
 app.MapControllers();
 
 // ==========================================
-// 3. FEATURE ENDPOINTS (VSA)
+// 3. FEATURE ENDPOINTS
 // ==========================================
 app.MapGetUsersEndpoint();
 app.MapCreateExamEndpoint();
 app.MapRegisterEndpoint();
 app.MapLoginEndpoint();
+app.MapSubmitExamEndpoint();
 
 // ==========================================
 // 4. TEST ENDPOINTS
