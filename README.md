@@ -1,13 +1,14 @@
-# ĐỀ TÀI NGHIÊN CỨU KHOA HỌC 2026 (EduScoring\_AI)
+ĐỀ TÀI NGHIÊN CỨU KHOA HỌC 2026 (EduScoring_AI)
+<p align="center">
+<b>HỆ THỐNG QUẢN LÝ VÀ CHẤM ĐIỂM TỰ ĐỘNG ỨNG DỤNG AI & OCR</b>
 
-\<p align="center"\>
-\<b\>HỆ THỐNG QUẢN LÝ VÀ CHẤM ĐIỂM TỰ ĐỘNG ỨNG DỤNG AI & OCR\</b\><br>
-\<i\>Giải pháp chuyển đổi số trong giáo dục, tự động hóa quy trình chấm bài thi tự luận.\</i\>
-<br><br>
-\<img src="[https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet](https://www.google.com/search?q=https://img.shields.io/badge/.NET-10-512BD4%3Flogo%3Ddotnet)" alt="Dotnet 10"\>
-\<img src="[https://img.shields.io/badge/PostgreSQL-Supabase-336791?logo=postgresql](https://www.google.com/search?q=https://img.shields.io/badge/PostgreSQL-Supabase-336791%3Flogo%3Dpostgresql)" alt="Supabase"\>
-\<img src="[https://img.shields.io/badge/Cloudinary-Image\_Storage-F5AF23?logo=cloudinary](https://www.google.com/search?q=https://img.shields.io/badge/Cloudinary-Image_Storage-F5AF23%3Flogo%3Dcloudinary)" alt="Cloudinary"\>
-\</p\>
+
+<i>Giải pháp chuyển đổi số trong giáo dục, tự động hóa quy trình chấm bài thi tự luận.</i>
+
+<img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt="Dotnet 10">
+<img src="https://img.shields.io/badge/PostgreSQL-Supabase-336791?logo=postgresql" alt="Supabase">
+<img src="https://img.shields.io/badge/Cloudinary-Image_Storage-F5AF23?logo=cloudinary" alt="Cloudinary">
+</p>
 
 ## 📌 Giới thiệu
 
