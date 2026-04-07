@@ -33,6 +33,7 @@ app.MapControllers();
 app.MapGetUsersEndpoint();
 app.MapCreateExamEndpoint();
 app.MapRegisterEndpoint();
+app.MapLoginEndpoint();
 
 // ==========================================
 // 4. TEST ENDPOINTS
