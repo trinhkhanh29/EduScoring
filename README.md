@@ -1,6 +1,8 @@
-# ĐỀ TÀI NGHIÊN CỨU KHOA HỌC 2026 (EduScoring_AI)
-<b>HỆ THỐNG QUẢN LÝ VÀ CHẤM ĐIỂM TỰ ĐỘNG ỨNG DỤNG AI & OCR</b>
-<i>Giải pháp chuyển đổi số trong giáo dục, tự động hóa quy trình chấm bài thi tự luận.</i>
+<h1 align="center">ĐỀ TÀI NGHIÊN CỨU KHOA HỌC 2025 (SmartLock_FaceRecognition)</h1>
+<p align="center">
+  <b>SƠ ĐỒ TỔNG QUAN</b><br>
+  <img src="https://github.com/user-attachments/assets/9ba958ce-6b52-41a2-9728-0c8279157360" width="400">
+</p>
 
 <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt="Dotnet 10">
 <img src="https://img.shields.io/badge/PostgreSQL-Supabase-336791?logo=postgresql" alt="Supabase">
