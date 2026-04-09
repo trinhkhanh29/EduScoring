@@ -20,7 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<SubmissionImage> SubmissionImages { get; set; }
     public DbSet<AiEvaluation> AiEvaluations { get; set; }
     public DbSet<Appeal> Appeals { get; set; }
-
+    public DbSet<ActivityLog> ActivityLogs { get; set; }
     // (optional test)
     public DbSet<TestEntry> TestEntries { get; set; }
 
@@ -57,6 +57,10 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Submission>()
             .Property(x => x.TotalScore)
             .HasPrecision(5, 2);
+
+        modelBuilder.Entity<Submission>()
+            .HasIndex(x => new { x.ExamId, x.StudentId })
+            .IsUnique();
 
         modelBuilder.Entity<AiEvaluation>()
             .Property(x => x.AwardedScore)
@@ -107,5 +111,11 @@ public class AppDbContext : DbContext
                 new Role { Id = 2, Name = EduScoring.Common.Authentication.AppRoles.Teacher, Description = "Giảng viên (Tạo đề, xem điểm)" },
                 new Role { Id = 3, Name = EduScoring.Common.Authentication.AppRoles.Student, Description = "Sinh viên (Nộp bài)" }
         );
+
+        modelBuilder.Entity<ActivityLog>()
+            .HasOne(x => x.User)
+            .WithMany() // Một User có thể có nhiều Log, nhưng class User không cần List<ActivityLog> cho đỡ nặng
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade); // Nếu xóa User thì xóa luôn lịch sử của họ
     }
 }
