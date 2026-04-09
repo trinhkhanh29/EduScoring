@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EduScoring.Data.Entities
 {
     [Table("Appeals")]
-    public class Appeal
+    public class Appeal : BaseEntity
     {
         [Key]
         public int Id { get; set; }

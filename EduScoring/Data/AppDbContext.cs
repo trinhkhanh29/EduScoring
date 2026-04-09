@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using EduScoring.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,12 +22,33 @@ public class AppDbContext : DbContext
     public DbSet<AiEvaluation> AiEvaluations { get; set; }
     public DbSet<Appeal> Appeals { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
-    // (optional test)
     public DbSet<TestEntry> TestEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // ==========================================
+        // 1. CHỈ GIỮ LẠI BỘ LỌC SOFT DELETE
+        // ==========================================
+        var baseEntityTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(e => typeof(BaseEntity).IsAssignableFrom(e.ClrType))
+            .Select(e => e.ClrType);
+
+        foreach (var clrType in baseEntityTypes)
+        {
+            var parameter = Expression.Parameter(clrType, "e");
+            var propertyMethodInfo = typeof(EF).GetMethod("Property")?.MakeGenericMethod(typeof(bool));
+            var isDeletedProperty = Expression.Call(null, propertyMethodInfo!, parameter, Expression.Constant("IsDeleted"));
+            var compareExpression = Expression.Equal(isDeletedProperty, Expression.Constant(false));
+            var lambda = Expression.Lambda(compareExpression, parameter);
+
+            modelBuilder.Entity(clrType).HasQueryFilter(lambda);
+        }
+
+        // ==========================================
+        // 2. GIỮ NGUYÊN 100% MAPPING BẢN CŨ TRÁNH LỖI DB
+        // ==========================================
 
         // ===== UserRole (Many-to-Many) =====
         modelBuilder.Entity<UserRole>()
@@ -114,8 +136,40 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<ActivityLog>()
             .HasOne(x => x.User)
-            .WithMany() // Một User có thể có nhiều Log, nhưng class User không cần List<ActivityLog> cho đỡ nặng
+            .WithMany()
             .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade); // Nếu xóa User thì xóa luôn lịch sử của họ
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    // ==========================================
+    // 3. OVERRIDE CHO SOFT DELETE AUTO
+    // ==========================================
+    public override int SaveChanges()
+    {
+        HandleSoftDelete();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        HandleSoftDelete();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void HandleSoftDelete()
+    {
+        var entries = ChangeTracker.Entries()
+            .Where(e => e.State == EntityState.Deleted && e.Entity is BaseEntity);
+
+        foreach (var entry in entries)
+        {
+            entry.State = EntityState.Modified;
+
+            var entity = (BaseEntity)entry.Entity;
+            entity.IsDeleted = true;
+            entity.DeletedAt = DateTimeOffset.UtcNow;
+
+            Console.WriteLine($"[SOFT DELETE AUTO] Đã ẩn thực thể {entry.Entity.GetType().Name}");
+        }
     }
 }
