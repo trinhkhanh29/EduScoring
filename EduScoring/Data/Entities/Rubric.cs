@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace EduScoring.Data.Entities
 {
     [Table("Rubrics")]
-    public class Rubric
+    public class Rubric : BaseEntity
     {
         [Key]
         public int Id { get; set; }

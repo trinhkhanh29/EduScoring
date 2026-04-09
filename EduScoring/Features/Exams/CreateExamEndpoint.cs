@@ -1,51 +1,67 @@
 ﻿using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using EduScoring.Common.Authentication;
 using EduScoring.Data;
 using EduScoring.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization; // BẮT BUỘC: Thêm thư viện này
+using Microsoft.AspNetCore.Mvc;
 
 namespace EduScoring.Features.Exams;
 
-// 1. Định nghĩa Request ngay tại đây bằng Record (Cực kỳ gọn nhẹ, thay cho DTO)
+// 1. Định nghĩa Request ngay tại đây bằng Record
 public record CreateExamRequest(string Title, string Description);
 
 public static class CreateExamEndpoint
 {
     public static void MapCreateExamEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/exams",
-            [Authorize(Roles = AppRoles.Teacher)] // <--- Biển báo phân quyền
-        async (CreateExamRequest request, AppDbContext db, HttpContext httpContext) =>
+        app.MapPost("/api/exams", async (
+            CreateExamRequest request,
+            AppDbContext db,
+            ClaimsPrincipal user) => // Dùng ClaimsPrincipal trực tiếp thay vì HttpContext
+        {
+            try
             {
-                // 2. Lấy TeacherId trực tiếp từ JWT Token đang được gửi lên
-                var teacherIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                   ?? httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-
-                if (!Guid.TryParse(teacherIdString, out Guid teacherId))
+                // 1. Rút ID người đang thao tác (Có thể là Admin hoặc Teacher)
+                var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!Guid.TryParse(userIdString, out Guid userId))
                 {
                     return Results.Unauthorized();
                 }
 
-                // 3. Mapping dữ liệu từ Request sang Entity
+                // 2. Mapping dữ liệu từ Request sang Entity
+                // Dù là Admin hay Teacher tạo, thì ID của người đó sẽ được lưu làm chủ tọa (TeacherId)
                 var newExam = new Exam
                 {
                     Title = request.Title,
                     Description = request.Description,
-                    TeacherId = teacherId,
+                    TeacherId = userId,
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
-                // 4. Lưu vào Database
+                // 3. Lưu vào Database
                 db.Exams.Add(newExam);
                 await db.SaveChangesAsync();
+
+                // Ghi log thành công
+                Console.WriteLine($"[THÀNH CÔNG] User {userId} (Role: {user.FindFirstValue(ClaimTypes.Role)}) đã tạo đề thi {newExam.Id}.");
 
                 return Results.Ok(new
                 {
                     Message = "Đã tạo đề thi thành công!",
                     ExamId = newExam.Id
                 });
-            })
-            .WithTags("Exams"); // Gom nhóm gọn gàng trên Swagger
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi ra Console
+                Console.WriteLine($"[LỖI NGHIÊM TRỌNG - CreateExam] Chi tiết: {ex.Message}");
+                Console.WriteLine(ex.StackTrace); // Dò lỗi dễ dàng hơn
+
+                return Results.Problem("Xảy ra lỗi hệ thống khi tạo đề thi. Vui lòng thử lại sau.");
+            }
+        })
+        // 4. Phân quyền: Mở cửa cho cả Admin và Teacher
+        .RequireAuthorization(new AuthorizeAttribute { Roles = $"{AppRoles.Admin},{AppRoles.Teacher}" })
+        .WithTags("Exams");
     }
 }

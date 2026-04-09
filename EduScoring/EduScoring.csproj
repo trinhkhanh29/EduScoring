@@ -18,11 +18,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="RabbitMQ.Client" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Common\Middleware\" />
     <Folder Include="Features\Rubrics\" />
     <Folder Include="Features\Scoring\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 </Project>

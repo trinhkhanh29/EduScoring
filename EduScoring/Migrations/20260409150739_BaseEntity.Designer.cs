@@ -3,6 +3,7 @@ using System;
 using EduScoring.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EduScoring.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409150739_BaseEntity")]
+    partial class BaseEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -291,10 +294,9 @@ namespace EduScoring.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("ExamId");
 
-                    b.HasIndex("ExamId", "StudentId")
-                        .IsUnique();
+                    b.HasIndex("StudentId");
 
                     b.ToTable("Submissions");
                 });
@@ -423,14 +425,18 @@ namespace EduScoring.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("UserId1")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "LoginProvider", "Name")
-                        .IsUnique();
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("UserTokens");
                 });
@@ -460,8 +466,7 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("User");
                 });
@@ -471,12 +476,12 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.Rubric", "Rubric")
                         .WithMany()
                         .HasForeignKey("RubricId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EduScoring.Data.Entities.Submission", "Submission")
                         .WithMany("Evaluations")
                         .HasForeignKey("SubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Rubric");
@@ -489,7 +494,7 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.Submission", "Submission")
                         .WithMany()
                         .HasForeignKey("SubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Submission");
@@ -500,7 +505,7 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.User", "Teacher")
                         .WithMany()
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Teacher");
                 });
@@ -510,7 +515,7 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.Exam", "Exam")
                         .WithMany("Rubrics")
                         .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Exam");
@@ -521,13 +526,13 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.Exam", "Exam")
                         .WithMany()
                         .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EduScoring.Data.Entities.User", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Exam");
 
@@ -539,7 +544,7 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.Submission", "Submission")
                         .WithMany("Images")
                         .HasForeignKey("SubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Submission");
@@ -550,13 +555,13 @@ namespace EduScoring.Migrations
                     b.HasOne("EduScoring.Data.Entities.Role", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EduScoring.Data.Entities.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Role");
@@ -566,9 +571,15 @@ namespace EduScoring.Migrations
 
             modelBuilder.Entity("EduScoring.Data.Entities.UserToken", b =>
                 {
+                    b.HasOne("EduScoring.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EduScoring.Data.Entities.User", "User")
                         .WithMany("Tokens")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
