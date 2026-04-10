@@ -6,6 +6,7 @@ using EduScoring.Features.Users;
 using EduScoring.Common.Messaging;
 using EduScoring.Features.Auth.Features.Login;
 using EduScoring.Features.Auth.Features.Register;
+using EduScoring.Features.Exams.Features.CreateExam;
 
 var builder = WebApplication.CreateBuilder(args);
 
