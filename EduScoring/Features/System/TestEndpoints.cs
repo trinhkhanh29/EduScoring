@@ -1,5 +1,5 @@
-﻿using EduScoring.Data;
-using EduScoring.Data.Entities;
+﻿using EduScoring.Data.Entities;
+using EduScoring.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduScoring.Features.System;

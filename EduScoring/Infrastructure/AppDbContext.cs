@@ -1,8 +1,10 @@
 using System.Linq.Expressions;
+using EduScoring.Data;
 using EduScoring.Data.Entities;
+using EduScoring.Features.Auth.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace EduScoring.Data;
+namespace EduScoring.Infrastructure;
 
 public class AppDbContext : DbContext
 {

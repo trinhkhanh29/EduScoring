@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" />
     <PackageReference Include="CloudinaryDotNet" />
+    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
@@ -25,6 +26,6 @@
     <Folder Include="Common\Middleware\" />
     <Folder Include="Features\Rubrics\" />
     <Folder Include="Features\Scoring\" />
-    <Folder Include="Migrations\" />
+    <Folder Include="Infrastructure\Migrations\" />
   </ItemGroup>
 </Project>
