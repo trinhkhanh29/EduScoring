@@ -1,10 +1,13 @@
 ﻿using EduScoring.Common.Authentication;
 using EduScoring.Common.Storage;
-using EduScoring.Data;
+using EduScoring.Features.Auth.Features.Login;
+using EduScoring.Features.Auth.Features.Register;
+using EduScoring.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
 
 namespace EduScoring.Common.Extensions;
 
@@ -111,6 +114,14 @@ public static class ServiceCollectionExtensions
         services.AddControllers();
         services.AddAuthorization();
         services.AddOpenApi();
+
+        // ── 7. Login-register
+        services.AddScoped<LoginCommandHandler>();
+        services.AddScoped<RegisterCommandHandler>();
+        Console.WriteLine("[STARTUP][HANDLERS] Đã đăng ký Login & Register Handlers.");
+
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+                Console.WriteLine("[STARTUP][HANDLERS] Đã đăng ký Handlers và MediatR.");
 
         Console.WriteLine("[STARTUP] AddApplicationServices hoàn tất.");
         return services;

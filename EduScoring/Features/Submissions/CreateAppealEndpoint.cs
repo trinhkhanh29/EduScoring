@@ -1,9 +1,9 @@
-﻿using EduScoring.Data;
-using EduScoring.Data.Entities;
+﻿using EduScoring.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using EduScoring.Common.Authentication;
 using EduScoring.Common.Messaging;
+using EduScoring.Infrastructure;
 
 namespace EduScoring.Features.Submissions.Appeals;
 

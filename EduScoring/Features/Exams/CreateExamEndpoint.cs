@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using EduScoring.Common.Authentication;
-using EduScoring.Data;
 using EduScoring.Data.Entities;
+using EduScoring.Infrastructure;
 using Microsoft.AspNetCore.Authorization; // BẮT BUỘC: Thêm thư viện này
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,7 +1,7 @@
-﻿using EduScoring.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using EduScoring.Common.Authentication;
 using System.Security.Claims;
+using EduScoring.Infrastructure;
 
 namespace EduScoring.Features.Exams;
 

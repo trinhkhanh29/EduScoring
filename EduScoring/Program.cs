@@ -1,10 +1,11 @@
 using EduScoring.Common.Extensions;
-using EduScoring.Features.Auth;
 using EduScoring.Features.Exams;
 using EduScoring.Features.Submissions;
 using EduScoring.Features.System;
 using EduScoring.Features.Users;
 using EduScoring.Common.Messaging;
+using EduScoring.Features.Auth.Features.Login;
+using EduScoring.Features.Auth.Features.Register;
 
 var builder = WebApplication.CreateBuilder(args);
 
