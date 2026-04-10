@@ -2,6 +2,11 @@
 using EduScoring.Common.Storage;
 using EduScoring.Features.Auth.Features.Login;
 using EduScoring.Features.Auth.Features.Register;
+using EduScoring.Features.Exams.Features.CreateExam;
+using EduScoring.Features.Exams.Features.DeleteExam;
+using EduScoring.Features.Exams.Features.GetExamDetail;
+using EduScoring.Features.Exams.Features.RestoreExam;
+using EduScoring.Features.Exams.Features.UpdateExam;
 using EduScoring.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -122,6 +127,13 @@ public static class ServiceCollectionExtensions
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
                 Console.WriteLine("[STARTUP][HANDLERS] Đã đăng ký Handlers và MediatR.");
+       
+        // Handlers của Exams
+        services.AddScoped<CreateExamCommandHandler>();
+        services.AddScoped<DeleteExamCommandHandler>();
+        services.AddScoped<UpdateExamCommandHandler>();
+        services.AddScoped<GetExamDetailQueryHandler>();
+        services.AddScoped<RestoreExamCommandHandler>();
 
         Console.WriteLine("[STARTUP] AddApplicationServices hoàn tất.");
         return services;

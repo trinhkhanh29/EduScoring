@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using EduScoring.Data;
 using EduScoring.Data.Entities;
 using EduScoring.Features.Auth.Models;
+using EduScoring.Features.Exams.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduScoring.Infrastructure;
