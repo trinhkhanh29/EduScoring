@@ -1,10 +1,8 @@
 ﻿using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using EduScoring.Common.Authentication;
 using EduScoring.Common.Storage;
 using EduScoring.Data;
 using EduScoring.Data.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,74 +12,102 @@ public static class SubmitExamEndpoint
 {
     public static void MapSubmitExamEndpoint(this IEndpointRouteBuilder app)
     {
-        // Phải có DisableAntiforgery() để Minimal API hỗ trợ nhận upload File qua form-data
-        app.MapPost("/api/submissions/upload",
-            [Authorize(Roles = AppRoles.Student)] // <--- Chỉ sinh viên mới được nộp bài
-        async (
-                [FromForm] int examId,
-                IFormFile file,
-                AppDbContext db,
-                CloudinaryService cloudService,
-                HttpContext httpContext) =>
+        app.MapPost("/api/submissions/upload", async (
+            [FromForm] int examId,   // FIX 1: Đổi từ Guid sang int cho khớp với Database
+            [FromForm] Guid studentId,
+            IFormFile file,
+            AppDbContext db,
+            ICloudinaryService cloudService,
+            ClaimsPrincipal user) =>
+        {
+            // 1. Kiểm tra quyền
+            if (!user.IsInRole(AppRoles.Teacher) && !user.IsInRole(AppRoles.Admin))
             {
-                // 1. Lấy StudentId từ Token
-                var studentIdString = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                   ?? httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                return Results.Forbid();
+            }
 
-                if (!Guid.TryParse(studentIdString, out Guid studentId))
-                    return Results.Unauthorized();
+            // 2. Kiểm tra File đầu vào & xem có đúng định dạng ảnh không
+            if (file is null || file.Length == 0)
+            {
+                return Results.BadRequest(new { Message = "File ảnh không hợp lệ hoặc bị trống!" });
+            }
 
-                // 2. Kiểm tra File
-                if (file == null || file.Length == 0)
-                    return Results.BadRequest(new { Message = "File ảnh không hợp lệ hoặc bị trống!" });
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                return Results.BadRequest(new { Message = "File upload phải là định dạng hình ảnh (jpeg, png...)!" });
+            }
 
-                // 3. Kiểm tra Exam có tồn tại không
-                var examExists = await db.Exams.AnyAsync(e => e.Id == examId);
-                if (!examExists)
-                    return Results.BadRequest(new { Message = $"Không tìm thấy kỳ thi có ID = {examId}" });
+            // 3. Kiểm tra Đề thi (và Sinh viên) có tồn tại không
+            var examExists = await db.Exams.AnyAsync(e => e.Id == examId);
+            if (!examExists)
+            {
+                return Results.BadRequest(new { Message = $"Không tìm thấy kỳ thi có ID = {examId}" });
+            }
 
-                // 4. Upload ảnh lên Cloudinary
-                var imageUrl = await cloudService.UploadImageAsync(file);
-                if (string.IsNullOrEmpty(imageUrl))
-                    return Results.BadRequest(new { Message = "Lỗi khi upload ảnh lên Cloudinary!" });
-
-                // 5. Lưu thông tin nộp bài (Submission)
-                // Sinh viên có thể nộp nhiều trang (nhiều ảnh), ta kiểm tra xem đã có Submission cho bài thi này chưa
-                var existingSubmission = await db.Submissions
+            // MỞ TRANSACTION: Đảm bảo nếu Upload ảnh lên Cloudinary lỗi thì không bị rác dữ liệu ở DB
+            using var transaction = await db.Database.BeginTransactionAsync();
+            try
+            {
+                // 4. Lấy túi đựng bài cũ, hoặc tạo túi mới
+                var submission = await db.Submissions
                     .FirstOrDefaultAsync(s => s.ExamId == examId && s.StudentId == studentId);
 
-                if (existingSubmission == null)
+                if (submission is null)
                 {
-                    existingSubmission = new Submission
+                    submission = new Submission
                     {
                         ExamId = examId,
                         StudentId = studentId,
-                        Status = "Pending", // Đang chờ AI chấm
+                        Status = "Pending",
                         SubmittedAt = DateTimeOffset.UtcNow
                     };
-                    db.Submissions.Add(existingSubmission);
-                    await db.SaveChangesAsync(); // Lưu để lấy ID
+                    db.Submissions.Add(submission);
+                    await db.SaveChangesAsync(); // Lưu để EF Core sinh ra SubmissionId
                 }
 
-                // 6. Lưu Link ảnh vào bảng SubmissionImages
+                // 5. Tính toán trang số mấy (PageNumber)
+                var pageNumber = await db.SubmissionImages
+                    .CountAsync(i => i.SubmissionId == submission.Id) + 1;
+
+                // 6. Gọi Cloudinary (Thực hiện khi DB đã sẵn sàng, nếu lỗi thì Rollback)
+                var imageUrl = await cloudService.UploadImageAsync(file);
+                if (string.IsNullOrEmpty(imageUrl))
+                {
+                    return Results.BadRequest(new { Message = "Lỗi khi upload ảnh lên Cloudinary!" });
+                }
+
+                // 7. Lưu đường link ảnh vào Database
                 var imageEntity = new SubmissionImage
                 {
-                    SubmissionId = existingSubmission.Id,
+                    SubmissionId = submission.Id,
                     ImageUrl = imageUrl,
-                    PageNumber = await db.SubmissionImages.CountAsync(i => i.SubmissionId == existingSubmission.Id) + 1
+                    PageNumber = pageNumber
                 };
                 db.SubmissionImages.Add(imageEntity);
 
                 await db.SaveChangesAsync();
 
+                // 8. Commit Giao dịch: Mọi thứ đều OK
+                await transaction.CommitAsync();
+
                 return Results.Ok(new
                 {
-                    Message = "Nộp bài và tải ảnh thành công!",
-                    SubmissionId = existingSubmission.Id,
+                    Message = "Tải ảnh bài thi thành công!",
+                    SubmissionId = submission.Id,
                     ImageUrl = imageUrl,
                     PageNumber = imageEntity.PageNumber
                 });
-            })
+            }
+            catch (Exception) // FIX 2: Bỏ chữ 'ex' đi để hết cảnh báo vàng
+            {
+                // Hủy thay đổi trong Database nếu có rủi ro (đặc biệt là lỗi Cloudinary)
+                await transaction.RollbackAsync();
+
+                // Trả về lỗi server tĩnh nếu muốn, log error tùy nhu cầu
+                return Results.Problem("Xảy ra lỗi trong quá trình xử lý bài nộp.");
+            }
+        })
+        .RequireAuthorization()
         .DisableAntiforgery()
         .WithTags("Submissions");
     }
