@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EduScoring.Data.Entities;
+
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EduScoring.Data.Entities
-{
+namespace EduScoring.Features.Exams.Models;
+
     [Table("Rubrics")]
     public class Rubric : BaseEntity
     {
@@ -21,4 +23,4 @@ namespace EduScoring.Data.Entities
 
         public Exam Exam { get; set; } = null!;
     }
-}
+

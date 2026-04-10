@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EduScoring.Data.Entities;
+
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EduScoring.Data.Entities
-{
-    [Table("Exams")]
+namespace EduScoring.Features.Exams.Models;
+
+[Table("Exams")]
     public class Exam : BaseEntity
     {
         [Key]
@@ -23,4 +25,4 @@ namespace EduScoring.Data.Entities
         public ICollection<Rubric> Rubrics { get; set; } = new List<Rubric>();
 
     }
-}
+
