@@ -1,5 +1,5 @@
 ﻿using EduScoring.Common.Authentication;
-using EduScoring.Data;
+using EduScoring.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 

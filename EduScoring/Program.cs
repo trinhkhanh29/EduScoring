@@ -1,9 +1,12 @@
 using EduScoring.Common.Extensions;
-using EduScoring.Features.Auth;
 using EduScoring.Features.Exams;
 using EduScoring.Features.Submissions;
 using EduScoring.Features.System;
 using EduScoring.Features.Users;
+using EduScoring.Common.Messaging;
+using EduScoring.Features.Auth.Features.Login;
+using EduScoring.Features.Auth.Features.Register;
+using EduScoring.Features.Exams.Features.CreateExam;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 1.SERVICES
 // ==========================================
 builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
 
 var app = builder.Build();
 
@@ -35,7 +39,11 @@ app.MapGetUsersEndpoint();
 app.MapCreateExamEndpoint();
 app.MapRegisterEndpoint();
 app.MapLoginEndpoint();
+//Exam
 app.MapSubmitExamEndpoint();
+app.MapUpdateExamEndpoint();
+app.MapDeleteExamEndpoint();
+app.MapGetExamDetailEndpoint();
 
 // ==========================================
 // 4. TEST ENDPOINTS
