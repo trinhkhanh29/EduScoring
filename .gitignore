@@ -483,5 +483,6 @@ $RECYCLE.BIN/
 
 # Bỏ qua file chứa mật khẩu cục bộ
 appsettings.Development.json
+appsettings.json
 appsettings.*.json
 .env

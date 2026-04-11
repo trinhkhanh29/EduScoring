@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EduScoring.Data.Entities;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EduScoring.Data.Entities
+namespace EduScoring.Features.Auth.Models
 {
     [Table("UserTokens")]
     public class UserToken
