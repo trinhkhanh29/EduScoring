@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" />
     <PackageReference Include="CloudinaryDotNet" />
+    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
@@ -18,11 +19,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="RabbitMQ.Client" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Common\Middleware\" />
     <Folder Include="Features\Rubrics\" />
     <Folder Include="Features\Scoring\" />
+    <Folder Include="Infrastructure\Migrations\" />
   </ItemGroup>
 </Project>
