@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EduScoring.Features.Auth.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EduScoring.Data.Entities;
 
 [Table("Users")]
-public class User
+public class User : BaseEntity
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();

@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EduScoring.Features.Exams.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EduScoring.Data.Entities
 {
     [Table("Submissions")]
-    public class Submission
+    public class Submission : BaseEntity
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
