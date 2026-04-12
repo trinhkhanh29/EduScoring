@@ -142,6 +142,19 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // AppDbContext.cs — trong OnModelCreating
+        modelBuilder.Entity<ActivityLog>()
+            .HasQueryFilter(a => !a.User.IsDeleted);
+
+        modelBuilder.Entity<UserRole>()
+            .HasQueryFilter(ur => !ur.User.IsDeleted);
+
+        modelBuilder.Entity<UserToken>()
+            .HasQueryFilter(ut => !ut.User.IsDeleted);
+
+        modelBuilder.Entity<AiEvaluation>()
+            .HasQueryFilter(ai => !ai.Submission.IsDeleted);
     }
 
     // ==========================================

@@ -7,6 +7,7 @@ using EduScoring.Common.Messaging;
 using EduScoring.Features.Auth.Features.Login;
 using EduScoring.Features.Auth.Features.Register;
 using EduScoring.Features.Exams.Features.CreateExam;
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,14 +41,15 @@ app.MapCreateExamEndpoint();
 app.MapRegisterEndpoint();
 app.MapLoginEndpoint();
 //Exam
-app.MapSubmitExamEndpoint();
-app.MapUpdateExamEndpoint();
-app.MapDeleteExamEndpoint();
-app.MapGetExamDetailEndpoint();
+//app.MapSubmitExamEndpoint();//
+//app.MapUpdateExamEndpoint();//
+//app.MapDeleteExamEndpoint();//
+//app.MapGetExamDetailEndpoint();//
 
 // ==========================================
 // 4. TEST ENDPOINTS
 // ==========================================
 app.MapTestEndpoints();
+
 
 await app.RunAsync();
