@@ -27,6 +27,5 @@
     <Folder Include="Features\Rubrics\" />
     <Folder Include="Features\Scoring\" />
     <Folder Include="Infrastructure\Migrations\" />
-    <Folder Include="postgres-cluster\" />
   </ItemGroup>
 </Project>
