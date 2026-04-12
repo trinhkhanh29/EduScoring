@@ -1,0 +1,111 @@
+services:
+
+  pg-leader:
+    image: postgres:16
+    container_name: pg-leader
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret123
+      POSTGRES_DB: eduscoring
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=trust"
+    volumes:
+      - pg-leader-data:/var/lib/postgresql/data
+      - ./init/01-replication-user.sql:/docker-entrypoint-initdb.d/01-replication-user.sql
+    command: >
+      postgres
+        -c wal_level=replica
+        -c max_wal_senders=5
+        -c max_replication_slots=5
+        -c hot_standby=on
+        -c wal_keep_size=256
+    ports:
+      - "5432:5432"
+    networks:
+      - pg-cluster
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d eduscoring"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pg-follower-1:
+    image: postgres:16
+    container_name: pg-follower-1
+    environment:
+      PGPASSWORD: replicator_pass
+    volumes:
+      - pg-follower1-data:/var/lib/postgresql/data
+    entrypoint:
+      - bash
+      - -c
+      - |
+        if [ -s "$$PGDATA/PG_VERSION" ]; then
+          echo "[FOLLOWER-1] Data ton tai, khoi dong lai..."
+        else
+          echo "[FOLLOWER-1] Cho Leader san sang..."
+          until pg_isready -h pg-leader -p 5432 -U admin; do sleep 2; done
+          sleep 2
+          echo "[FOLLOWER-1] Bat dau clone..."
+          pg_basebackup -h pg-leader -p 5432 -U replicator \
+            -D $$PGDATA -Fp -Xs -P -R \
+            --checkpoint=fast \
+            --slot=slot_follower_1
+          echo "[FOLLOWER-1] Fix permission..."
+          chown -R postgres:postgres $$PGDATA
+          chmod 700 $$PGDATA
+          echo "[FOLLOWER-1] Clone xong."
+        fi
+        exec gosu postgres postgres -c hot_standby=on
+    ports:
+      - "5433:5432"
+    networks:
+      - pg-cluster
+    depends_on:
+      pg-leader:
+        condition: service_healthy
+
+  pg-follower-2:
+    image: postgres:16
+    container_name: pg-follower-2
+    environment:
+      PGPASSWORD: replicator_pass
+    volumes:
+      - pg-follower2-data:/var/lib/postgresql/data
+    entrypoint:
+      - bash
+      - -c
+      - |
+        if [ -s "$$PGDATA/PG_VERSION" ]; then
+          echo "[FOLLOWER-2] Data ton tai, khoi dong lai..."
+        else
+          echo "[FOLLOWER-2] Cho Leader san sang..."
+          until pg_isready -h pg-leader -p 5432 -U admin; do sleep 2; done
+          sleep 2
+          echo "[FOLLOWER-2] Bat dau clone..."
+          pg_basebackup -h pg-leader -p 5432 -U replicator \
+            -D $$PGDATA -Fp -Xs -P -R \
+            --checkpoint=fast \
+            --slot=slot_follower_2
+          echo "[FOLLOWER-2] Fix permission..."
+          chown -R postgres:postgres $$PGDATA
+          chmod 700 $$PGDATA
+          echo "[FOLLOWER-2] Clone xong."
+        fi
+        exec gosu postgres postgres -c hot_standby=on
+    ports:
+      - "5434:5432"
+    networks:
+      - pg-cluster
+    depends_on:
+      pg-leader:
+        condition: service_healthy
+
+volumes:
+  pg-leader-data:
+  pg-follower1-data:
+  pg-follower2-data:
+
+networks:
+  pg-cluster:
+    driver: bridge
