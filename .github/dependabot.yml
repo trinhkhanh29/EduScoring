@@ -1,0 +1,37 @@
+version: 2
+updates:
+
+  # ── .NET / NuGet packages ──────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    ignore:
+      # Không tự update major version — tránh breaking changes
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Gộp tất cả patch + minor vào 1 PR duy nhất mỗi tuần
+      nuget-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # ── Docker base images ─────────────────────────────────────
+  - package-ecosystem: "docker"
+    directory: "/postgres-cluster"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 2
+    ignore:
+      # Ghim major version postgres:16 — không tự nhảy lên 17
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "chore(docker)"
