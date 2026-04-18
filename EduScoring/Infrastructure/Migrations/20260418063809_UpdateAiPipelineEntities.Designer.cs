@@ -4,6 +4,7 @@ using System.Text.Json;
 using EduScoring.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EduScoring.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260418063809_UpdateAiPipelineEntities")]
+    partial class UpdateAiPipelineEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -268,12 +271,6 @@ namespace EduScoring.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("AllowAppeal")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("AllowStudentSubmission")
-                        .HasColumnType("boolean");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -287,9 +284,6 @@ namespace EduScoring.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequireTeacherReview")
                         .HasColumnType("boolean");
 
                     b.Property<Guid?>("TeacherId")
@@ -496,10 +490,6 @@ namespace EduScoring.Migrations
                     b.Property<string>("CombinedOcrText")
                         .HasColumnType("text");
 
-                    b.Property<string>("CreatedSource")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -546,12 +536,11 @@ namespace EduScoring.Migrations
                     b.Property<Guid?>("StudentId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("SubmissionMode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTimeOffset>("SubmittedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("TotalScore")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 

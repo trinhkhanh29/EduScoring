@@ -10,7 +10,7 @@ public static class DeleteExamEndpoint
     {
         app.MapDelete("/api/exams/{id:int}", async (int id, ClaimsPrincipal user, DeleteExamCommandHandler handler) =>
         {
-            var tag = $"[DeleteExam | ExamId={id}]";
+            var tag = $"[DeleteExam | EntityId={id}]";
 
             // 1. Parse UserId từ token
             var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);

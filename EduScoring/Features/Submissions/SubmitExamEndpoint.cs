@@ -5,6 +5,7 @@ using EduScoring.Data.Entities;
 using EduScoring.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using EduScoring.Features.Submissions.Models;
 
 namespace EduScoring.Features.Submissions;
 

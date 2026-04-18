@@ -3,6 +3,7 @@ using EduScoring.Data;
 using EduScoring.Data.Entities;
 using EduScoring.Features.Auth.Models;
 using EduScoring.Features.Exams.Models;
+using EduScoring.Features.Submissions.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduScoring.Infrastructure;
@@ -26,7 +27,8 @@ public class AppDbContext : DbContext
     public DbSet<Appeal> Appeals { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<TestEntry> TestEntries { get; set; }
-
+    public DbSet<AiEvaluationDetail> AiEvaluationDetails { get; set; }
+    public DbSet<HumanEvaluation> HumanEvaluations { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -80,7 +82,7 @@ public class AppDbContext : DbContext
             .HasPrecision(5, 2);
 
         modelBuilder.Entity<Submission>()
-            .Property(x => x.TotalScore)
+            .Property(x => x.FinalScore)
             .HasPrecision(5, 2);
 
         modelBuilder.Entity<Submission>()
@@ -88,9 +90,16 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<AiEvaluation>()
-            .Property(x => x.AwardedScore)
+            .Property(x => x.TotalScore)
             .HasPrecision(5, 2);
 
+        modelBuilder.Entity<AiEvaluationDetail>()
+            .Property(x => x.Score)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<HumanEvaluation>()
+            .Property(x => x.TeacherScore)
+            .HasPrecision(5, 2);
         // ===== Relationships =====
 
         modelBuilder.Entity<Exam>()
