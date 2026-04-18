@@ -61,4 +61,5 @@ public class Submission : BaseEntity
     public ICollection<SubmissionImage> Images { get; set; } = new List<SubmissionImage>();
     public ICollection<AiEvaluation> Evaluations { get; set; } = new List<AiEvaluation>();
     public ICollection<HumanEvaluation> HumanEvaluations { get; set; } = new List<HumanEvaluation>();
+    public ICollection<Appeal> Appeals { get; set; } = new List<Appeal>();
 }
