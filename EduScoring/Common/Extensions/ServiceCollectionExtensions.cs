@@ -1,18 +1,12 @@
 ﻿using EduScoring.Common.Authentication;
+using EduScoring.Common.Messaging;
 using EduScoring.Common.Storage;
-using EduScoring.Features.Auth.Features.Login;
-using EduScoring.Features.Auth.Features.Register;
-using EduScoring.Features.Exams.Features.CreateExam;
-using EduScoring.Features.Exams.Features.DeleteExam;
-using EduScoring.Features.Exams.Features.GetExamDetail;
-using EduScoring.Features.Exams.Features.RestoreExam;
-using EduScoring.Features.Exams.Features.UpdateExam;
 using EduScoring.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
-
 
 namespace EduScoring.Common.Extensions;
 
@@ -27,16 +21,15 @@ public static class ServiceCollectionExtensions
             Console.WriteLine("[STARTUP][CRITICAL] Thiếu ConnectionStrings:DefaultConnection trong config.");
             throw new InvalidOperationException("Thiếu connection string 'DefaultConnection'.");
         }
-
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
         Console.WriteLine("[STARTUP][DB] Đã đăng ký AppDbContext với Npgsql.");
 
         // ── 2. Cloudinary
         services.Configure<CloudinarySettings>(config.GetSection(CloudinarySettings.SectionName));
-        services.AddScoped<ICloudinaryService, CloudinaryService>(); // ← chỉ đăng ký 1 lần qua interface
+        services.AddScoped<ICloudinaryService, CloudinaryService>();
         Console.WriteLine("[STARTUP][CLOUDINARY] Đã đăng ký CloudinaryService.");
 
-        // ── 3. JWT Settings
+        // ── 3. JWT
         var jwtSettings = new JwtSettings();
         config.Bind(JwtSettings.SectionName, jwtSettings);
 
@@ -56,7 +49,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IJwtProvider, JwtProvider>();
         Console.WriteLine($"[STARTUP][JWT] Secret={new string('*', jwtSettings.Secret.Length)} | Issuer={jwtSettings.Issuer} | Audience={jwtSettings.Audience}");
 
-        // ── 4. Authentication + JWT Bearer Events
+        // ── 4. Authentication
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -68,10 +61,8 @@ public static class ServiceCollectionExtensions
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings.Issuer,
                     ValidAudience = jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                                                  Encoding.UTF8.GetBytes(jwtSettings.Secret))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
                 };
-
                 options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = context =>
@@ -94,19 +85,10 @@ public static class ServiceCollectionExtensions
                         Console.WriteLine($"[AUTH][OK] UserId={userId}");
                         return Task.CompletedTask;
                     },
-                    OnChallenge = context =>
-                    {
-                        Console.WriteLine($"[AUTH][401] Thiếu hoặc từ chối token | Path={context.Request.Path}");
-                        return Task.CompletedTask;
-                    },
-                    OnForbidden = context =>
-                    {
-                        Console.WriteLine($"[AUTH][403] Không đủ quyền | Path={context.Request.Path}");
-                        return Task.CompletedTask;
-                    }
+                    OnChallenge = context => { Console.WriteLine($"[AUTH][401] Thiếu hoặc từ chối token | Path={context.Request.Path}"); return Task.CompletedTask; },
+                    OnForbidden = context => { Console.WriteLine($"[AUTH][403] Không đủ quyền | Path={context.Request.Path}"); return Task.CompletedTask; }
                 };
             });
-
         Console.WriteLine("[STARTUP][AUTH] Đã đăng ký JWT Bearer Authentication.");
 
         // ── 5. CORS
@@ -120,21 +102,27 @@ public static class ServiceCollectionExtensions
         services.AddAuthorization();
         services.AddOpenApi();
 
-        // ── 7. Login-register
-        services.AddScoped<LoginCommandHandler>();
-        services.AddScoped<RegisterCommandHandler>();
-        Console.WriteLine("[STARTUP][HANDLERS] Đã đăng ký Login & Register Handlers.");
+        // ── 7. RabbitMQ
+        services.AddSingleton<IRabbitMQService, RabbitMQService>();
+        Console.WriteLine("[STARTUP][RABBITMQ] Đã đăng ký RabbitMQService.");
 
+        // ── 8. MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-                Console.WriteLine("[STARTUP][HANDLERS] Đã đăng ký Handlers và MediatR.");
-       
-        // Handlers của Exams
-        services.AddScoped<CreateExamCommandHandler>();
-        services.AddScoped<DeleteExamCommandHandler>();
-        services.AddScoped<UpdateExamCommandHandler>();
-        services.AddScoped<GetExamDetailQueryHandler>();
-        services.AddScoped<RestoreExamCommandHandler>();
+        Console.WriteLine("[STARTUP][MEDIATR] Đã đăng ký MediatR.");
 
+        // ── 9. Auto-scan và đăng ký tất cả CommandHandler / QueryHandler trong assembly
+        // Convention: class tên kết thúc bằng "CommandHandler" hoặc "QueryHandler"
+        // Thêm feature mới → tự động được đăng ký, không cần sửa file này
+        var assembly = Assembly.GetExecutingAssembly();
+        var handlerTypes = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract &&
+                       (t.Name.EndsWith("CommandHandler") || t.Name.EndsWith("QueryHandler")))
+            .ToList();
+
+        foreach (var handlerType in handlerTypes)
+            services.AddScoped(handlerType);
+
+        Console.WriteLine($"[STARTUP][HANDLERS] Đã tự động đăng ký {handlerTypes.Count} Handlers.");
         Console.WriteLine("[STARTUP] AddApplicationServices hoàn tất.");
         return services;
     }
