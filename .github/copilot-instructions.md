@@ -17,8 +17,9 @@ This project is a modern ASP.NET Core Web API built strictly following
 
 ## 2. CQRS & Database
 
-- **`AppDbContext`** — Write operations (Commands). Connects to the **Leader** node.
-- **`AppReadDbContext`** — Read operations (Queries). Connects to **Follower** nodes, always `NoTracking`.
+- **`AppDbContext`** — Used for ALL database operations (Leader node).
+- **Commands (Write):** Inject `AppDbContext`. Make changes and call `SaveChangesAsync()`.
+- **Queries (Read):** Inject `AppDbContext`. You **MUST ALWAYS** use `.AsNoTracking()` for read-only queries to optimize performance.
 
 ```csharp
 // Commands → Write DB (Leader)
