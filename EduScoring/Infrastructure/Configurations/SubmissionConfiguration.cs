@@ -25,10 +25,5 @@ public class SubmissionConfiguration : IEntityTypeConfiguration<Submission>
             .IsRequired(false);
 
         builder.HasQueryFilter(s => !s.IsDeleted);
-
-        // ← XÓA toàn bộ HasMany ở đây
-        // Đã được khai báo trong AiEvaluationConfiguration,
-        // HumanEvaluationConfiguration, AppealConfiguration,
-        // SubmissionImageConfiguration
     }
 }

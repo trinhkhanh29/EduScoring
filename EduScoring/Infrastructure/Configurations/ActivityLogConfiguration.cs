@@ -13,7 +13,6 @@ public class ActivityLogConfiguration : IEntityTypeConfiguration<ActivityLog>
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // ActivityLog không kế thừa BaseEntity nên phải filter qua navigation
         builder.HasQueryFilter(al => !al.User.IsDeleted);
     }
 }

@@ -21,6 +21,5 @@ public class HumanEvaluationConfiguration : IEntityTypeConfiguration<HumanEvalua
             .HasForeignKey(h => h.SubmissionId)
             .IsRequired(false);
 
-        // Filter trên chính entity — không qua navigation tránh conflict
     }
 }

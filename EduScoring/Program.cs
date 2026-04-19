@@ -17,7 +17,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Tự động map tất cả endpoints trong assembly — không cần gọi tay từng cái
 app.MapAllEndpoints();
 
 await app.RunAsync();

@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
 using System.Text;
+using RabbitMQ.Client;
+using EduScoring.Features.Submissions.Services;
 
 namespace EduScoring.Common.Extensions;
 
@@ -103,8 +105,21 @@ public static class ServiceCollectionExtensions
         services.AddOpenApi();
 
         // ── 7. RabbitMQ
+        services.AddSingleton<IConnection>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var factory = new ConnectionFactory
+            {
+                HostName = config["RabbitMQ:Host"] ?? "localhost",
+                UserName = config["RabbitMQ:Username"] ?? "guest",
+                Password = config["RabbitMQ:Password"] ?? "guest"
+            };
+            // Tạo kết nối. (Dùng GetAwaiter().GetResult() vì bước DI Container khởi tạo bắt buộc phải chạy đồng bộ)
+            return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        });
         services.AddSingleton<IRabbitMQService, RabbitMQService>();
-        Console.WriteLine("[STARTUP][RABBITMQ] Đã đăng ký RabbitMQService.");
+        services.AddHostedService<EduScoring.Infrastructure.Workers.AiScoringWorker>();
+        Console.WriteLine("[STARTUP][RABBITMQ] Đã đăng ký RabbitMQService, IConnection và AiScoringWorker.");
 
         // ── 8. MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
@@ -121,6 +136,9 @@ public static class ServiceCollectionExtensions
 
         foreach (var handlerType in handlerTypes)
             services.AddScoped(handlerType);
+
+        // thêm vào dòng này
+        services.AddHttpClient<IAiScoringService, EduScoring.Infrastructure.Services.GeminiScoringService>();
 
         Console.WriteLine($"[STARTUP][HANDLERS] Đã tự động đăng ký {handlerTypes.Count} Handlers.");
         Console.WriteLine("[STARTUP] AddApplicationServices hoàn tất.");
