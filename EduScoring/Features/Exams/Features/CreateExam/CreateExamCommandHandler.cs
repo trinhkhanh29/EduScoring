@@ -8,32 +8,37 @@ namespace EduScoring.Features.Exams.Features.CreateExam;
 public class CreateExamCommandHandler
 {
     private readonly AppDbContext _db;
-    //private readonly IMediator _mediator;//
 
-    public CreateExamCommandHandler(AppDbContext db, IMediator mediator)
+    public CreateExamCommandHandler(AppDbContext db)
     {
         _db = db;
-        //_mediator = mediator;//
     }
 
     public async Task<(bool IsSuccess, CreateExamResponse? Data, string ErrorMessage)> Handle(CreateExamCommand command)
     {
+        // 0. Validate cơ bản
+        if (string.IsNullOrWhiteSpace(command.Title))
+        {
+            return (false, null, "Tiêu đề đề thi không được để trống!");
+        }
+
         // 1. Khởi tạo Entity Exam
         var exam = new Exam
         {
             Title = command.Title,
             Description = command.Description,
             TeacherId = command.TeacherId,
-            CreatedAt = DateTimeOffset.UtcNow,
-            IsDeleted = false
+            AllowStudentSubmission = command.AllowStudentSubmission,
+            RequireTeacherReview = command.RequireTeacherReview,
+            AllowAppeal = command.AllowAppeal,
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         // 2. Lưu xuống DB
         _db.Exams.Add(exam);
         await _db.SaveChangesAsync();
 
-        // 3. (Optional) Bắn Event nếu cần
-        // await _mediator.Publish(new ExamCreatedEvent(exam.Id, exam.Title));//
+        Console.WriteLine($"[CreateExam] THÀNH CÔNG — ExamId: {exam.Id} | CreatedBy: {exam.TeacherId}");
 
         return (true, new CreateExamResponse(exam.Id, "Tạo đề thi thành công!"), string.Empty);
     }

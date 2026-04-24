@@ -1,12 +1,22 @@
+# ============================================================
+#  PostgreSQL Streaming Replication — 1 Leader + 2 Follower
+#  LOCAL DEV ONLY — không dùng cho production
+#
+#  Setup:
+#    1. cp .env.example .env
+#    2. Điền password vào .env
+#    3. docker compose up -d
+# ============================================================
+
 services:
 
   pg-leader:
     image: postgres:16
     container_name: pg-leader
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secret123
-      POSTGRES_DB: eduscoring
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=trust"
     volumes:
@@ -24,7 +34,7 @@ services:
     networks:
       - pg-cluster
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d eduscoring"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -33,7 +43,7 @@ services:
     image: postgres:16
     container_name: pg-follower-1
     environment:
-      PGPASSWORD: replicator_pass
+      PGPASSWORD: ${REPLICATOR_PASSWORD}
     volumes:
       - pg-follower1-data:/var/lib/postgresql/data
     entrypoint:
@@ -44,7 +54,7 @@ services:
           echo "[FOLLOWER-1] Data ton tai, khoi dong lai..."
         else
           echo "[FOLLOWER-1] Cho Leader san sang..."
-          until pg_isready -h pg-leader -p 5432 -U admin; do sleep 2; done
+          until pg_isready -h pg-leader -p 5432 -U ${POSTGRES_USER}; do sleep 2; done
           sleep 2
           echo "[FOLLOWER-1] Bat dau clone..."
           pg_basebackup -h pg-leader -p 5432 -U replicator \
@@ -69,7 +79,7 @@ services:
     image: postgres:16
     container_name: pg-follower-2
     environment:
-      PGPASSWORD: replicator_pass
+      PGPASSWORD: ${REPLICATOR_PASSWORD}
     volumes:
       - pg-follower2-data:/var/lib/postgresql/data
     entrypoint:
@@ -80,7 +90,7 @@ services:
           echo "[FOLLOWER-2] Data ton tai, khoi dong lai..."
         else
           echo "[FOLLOWER-2] Cho Leader san sang..."
-          until pg_isready -h pg-leader -p 5432 -U admin; do sleep 2; done
+          until pg_isready -h pg-leader -p 5432 -U ${POSTGRES_USER}; do sleep 2; done
           sleep 2
           echo "[FOLLOWER-2] Bat dau clone..."
           pg_basebackup -h pg-leader -p 5432 -U replicator \

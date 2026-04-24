@@ -8,9 +8,9 @@ public static class RestoreExamEndpoint
 {
     public static void MapRestoreExamEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/exams/{id:int}/restore", async (int id, ClaimsPrincipal user, RestoreExamCommandHandler handler) =>
+        app.MapPatch("/api/exams/{id:int}/restore", async (int id, ClaimsPrincipal user, RestoreExamCommandHandler handler) =>
         {
-            var tag = $"[RestoreExam | ExamId={id}]";
+            var tag = $"[RestoreExam | EntityId={id}]";
 
             // 1. Parse UserId từ token
             var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);

@@ -11,7 +11,7 @@ public static class UpdateExamEndpoint
     {
         app.MapPut("/api/exams/{id:int}", async (int id, [FromBody] UpdateExamRequest request, ClaimsPrincipal user, UpdateExamCommandHandler handler) =>
         {
-            var tag = $"[UpdateExam | ExamId={id}]";
+            var tag = $"[UpdateExam | EntityId={id}]";
 
             // 1. Parse UserId từ token
             var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -32,7 +32,17 @@ public static class UpdateExamEndpoint
             var role = isAdmin ? AppRoles.Admin : AppRoles.Teacher;
             Console.WriteLine($"{tag} Yêu cầu cập nhật — UserId: {userId} | Role: {role} | Title mới: '{request.Title}'");
 
-            var command = new UpdateExamCommand(id, request.Title, request.Description, userId, isAdmin);
+            var command = new UpdateExamCommand(
+                id, 
+                request.Title, 
+                request.Description, 
+                request.TeacherId,
+                userId, 
+                isAdmin,
+                request.AllowStudentSubmission,
+                request.RequireTeacherReview,
+                request.AllowAppeal);
+
             var result = await handler.Handle(command);
 
             if (!result.IsSuccess)
@@ -41,16 +51,18 @@ public static class UpdateExamEndpoint
                 {
                     404 => "Đề thi không tồn tại",
                     403 => "Không có quyền sửa đề thi này",
+                    500 => "Lỗi máy chủ",
                     _ => "Lỗi không xác định"
                 };
                 Console.WriteLine($"{tag} THẤT BẠI [{result.StatusCode}] — {reason}. Chi tiết: {result.ErrorMessage}");
 
                 if (result.StatusCode == 404) return Results.NotFound(new { Message = result.ErrorMessage });
                 if (result.StatusCode == 403) return Results.Json(new { Message = result.ErrorMessage }, statusCode: 403);
+                if (result.StatusCode == 500) return Results.Problem(title: "Internal Error", detail: result.ErrorMessage, statusCode: 500);
                 return Results.BadRequest(new { Message = result.ErrorMessage });
             }
 
-            Console.WriteLine($"{tag} THÀNH CÔNG — ExamId {id} đã được cập nhật bởi UserId: {userId} ({role})");
+            Console.WriteLine($"{tag} THÀNH CÔNG — Đã cập nhật đề thi bởi UserId: {userId} ({role})");
             return Results.Ok(new { Message = "Cập nhật đề thi thành công!" });
         })
         .RequireAuthorization(new AuthorizeAttribute { Roles = $"{AppRoles.Admin},{AppRoles.Teacher}" })

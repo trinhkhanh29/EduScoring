@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EduScoring.Data.Entities;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EduScoring.Data.Entities
+namespace EduScoring.Features.Submissions.Models
 {
     [Table("Appeals")]
     public class Appeal : BaseEntity
@@ -20,6 +21,12 @@ namespace EduScoring.Data.Entities
         public string Status { get; set; } = "Open";
 
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+        public Guid? ResolvedBy { get; set; }
+        public DateTimeOffset? ResolvedAt { get; set; }
+        public string? ResolutionType { get; set; }
+        public decimal? PreviousScore { get; set; }
+        public decimal? NewScore { get; set; }
 
         public Submission Submission { get; set; } = null!;
     }

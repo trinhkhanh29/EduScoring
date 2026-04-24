@@ -1,9 +1,6 @@
-﻿using EduScoring.Common.Authentication;
-using EduScoring.Data.Entities;
-using EduScoring.Infrastructure;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace EduScoring.Features.Auth.Features.Register;
 
@@ -11,17 +8,25 @@ public static class RegisterEndpoint
 {
     public static void MapRegisterEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/register", async ([FromBody] RegisterCommand request, RegisterCommandHandler handler) =>
-        {
-            var result = await handler.Handle(request);
-
-            if (!result.IsSuccess)
+        app.MapPost("/api/auth/register",
+            [Authorize(Roles = "Admin")]
+        async ([FromBody] RegisterCommand request, ClaimsPrincipal user, RegisterCommandHandler handler) =>
             {
-                return Results.BadRequest(new { Message = result.ErrorMessage });
-            }
+                var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!Guid.TryParse(userIdString, out Guid adminUserId))
+                {
+                    return Results.Unauthorized();
+                }
 
-            return Results.Ok(result.Data);
+                var result = await handler.Handle(request, adminUserId);
 
-        }).WithTags("Auth");
+                if (!result.IsSuccess)
+                {
+                    return Results.BadRequest(new { Message = result.ErrorMessage });
+                }
+
+                return Results.Ok(result.Data);
+
+            }).WithTags("Auth");
     }
 }

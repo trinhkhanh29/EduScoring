@@ -9,7 +9,7 @@ public static class GetExamDetailEndpoint
     {
         app.MapGet("/api/exams/{id:int}", async (int id, ClaimsPrincipal user, GetExamDetailQueryHandler handler) =>
         {
-            var tag = $"[GetExamDetail | ExamId={id}]";
+            var tag = $"[GetExamDetail | EntityId={id}]";
 
             // 1. Parse UserId từ token
             var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -19,11 +19,13 @@ public static class GetExamDetailEndpoint
                 return Results.Unauthorized();
             }
 
-            bool isAdmin = user.IsInRole(AppRoles.Admin);
-            var role = isAdmin ? AppRoles.Admin : "User";
+            string role = AppRoles.Student;
+            if (user.IsInRole(AppRoles.Admin)) role = AppRoles.Admin;
+            else if (user.IsInRole(AppRoles.Teacher)) role = AppRoles.Teacher;
+
             Console.WriteLine($"{tag} Yêu cầu xem chi tiết — UserId: {userId} | Role: {role}");
 
-            var result = await handler.Handle(new GetExamDetailQuery(id, userId, isAdmin));
+            var result = await handler.Handle(new GetExamDetailQuery(id, userId, role));
 
             if (!result.IsSuccess)
             {
@@ -36,13 +38,14 @@ public static class GetExamDetailEndpoint
                 Console.WriteLine($"{tag} THẤT BẠI [{result.StatusCode}] — {reason}. Chi tiết: {result.ErrorMessage}");
 
                 if (result.StatusCode == 404) return Results.NotFound(new { Message = result.ErrorMessage });
-                return Results.Json(new { Message = result.ErrorMessage }, statusCode: 403);
+                return Results.Json(new { Message = result.ErrorMessage }, statusCode: result.StatusCode == 403 ? 403 : 400);
             }
 
             Console.WriteLine($"{tag} THÀNH CÔNG — Trả về chi tiết cho UserId: {userId} ({role})");
             return Results.Ok(result.Data);
         })
-        .RequireAuthorization()
-        .WithTags("Exams");
+                        .RequireAuthorization()
+                        .WithTags("Exams")
+                        .Produces<ExamDetailDto>();
     }
 }

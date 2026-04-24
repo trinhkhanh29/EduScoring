@@ -1,14 +1,10 @@
-﻿-- Tạo replication user
-CREATE USER replicator WITH REPLICATION ENCRYPTED PASSWORD 'replicator_pass';
+﻿CREATE USER replicator WITH REPLICATION ENCRYPTED PASSWORD 'replicator_pass';
 
--- Tạo replication slot cho từng follower (giữ WAL không bị xóa khi đang clone)
 SELECT pg_create_physical_replication_slot('slot_follower_1');
 SELECT pg_create_physical_replication_slot('slot_follower_2');
 
--- Thêm rule replication vào pg_hba.conf
 DO $$
-DECLARE
-  hba_path text;
+DECLARE hba_path text;
 BEGIN
   SELECT setting INTO hba_path FROM pg_settings WHERE name = 'hba_file';
   EXECUTE format(
@@ -16,6 +12,6 @@ BEGIN
     'tee -a ' || hba_path
   );
   PERFORM pg_reload_conf();
-  RAISE NOTICE '[LEADER] Setup xong.';
+  RAISE NOTICE '[LEADER] Setup replication xong.';
 END;
 $$;
