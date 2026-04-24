@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EduScoring.Data.Entities;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EduScoring.Data.Entities
+namespace EduScoring.Features.Submissions.Models
 {
     [Table("SubmissionImages")]
     public class SubmissionImage : BaseEntity
@@ -13,13 +14,12 @@ namespace EduScoring.Data.Entities
 
         [Required]
         public string ImageUrl { get; set; } = string.Empty;
-
         public int PageNumber { get; set; } = 1;
-
         public string? OcrRawText { get; set; }
-
+        public string? OcrCleanedText { get; set; }
+        public double? OcrConfidence { get; set; }
+        public string? OcrEngine { get; set; }
         public DateTimeOffset UploadedAt { get; set; } = DateTimeOffset.UtcNow;
-
         public Submission Submission { get; set; } = null!;
     }
 }

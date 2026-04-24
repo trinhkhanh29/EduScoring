@@ -12,6 +12,10 @@ public class UpdateExamCommandHandler
     {
         var tag = $"[UpdateExamHandler | ExamId={command.Id}]";
 
+        // 0. Validate lõi
+        if (string.IsNullOrWhiteSpace(command.Title))
+            return (false, "Title không được để trống!", 400);
+
         // 1. Tìm exam
         var exam = await _db.Exams.FirstOrDefaultAsync(e => e.Id == command.Id);
         if (exam == null)
@@ -28,20 +32,18 @@ public class UpdateExamCommandHandler
             return (false, "Không có quyền sửa đề thi của giảng viên khác!", 403);
         }
 
-        // 3. Phát hiện thay đổi thực sự
-        bool titleChanged = exam.Title != command.Title;
-        bool descChanged = exam.Description != command.Description;
-
-        if (!titleChanged && !descChanged)
-        {
-            Console.WriteLine($"{tag} Không có thay đổi nào — dữ liệu gửi lên giống DB hiện tại, bỏ qua SaveChanges.");
-            return (true, string.Empty, 200);
-        }
-
-        Console.WriteLine($"{tag} Thay đổi phát hiện —{(titleChanged ? $" Title: '{exam.Title}' → '{command.Title}'" : "")}{(descChanged ? " | Description: đã thay đổi" : "")}");
-
+        // 3. Cập nhật các trường thông tin và Policy
         exam.Title = command.Title;
         exam.Description = command.Description;
+        exam.AllowStudentSubmission = command.AllowStudentSubmission;
+        exam.RequireTeacherReview = command.RequireTeacherReview;
+        exam.AllowAppeal = command.AllowAppeal;
+
+        // Nếu là Admin và muốn đổi người gác thi/sở hữu đề
+        if (command.IsAdmin && command.TeacherId.HasValue)
+        {
+            exam.TeacherId = command.TeacherId.Value;
+        }
 
         try
         {
@@ -53,7 +55,7 @@ public class UpdateExamCommandHandler
             return (false, "Lỗi hệ thống khi cập nhật đề thi. Vui lòng thử lại.", 500);
         }
 
-        Console.WriteLine($"{tag} THÀNH CÔNG — Đã lưu thay đổi vào DB.");
+        Console.WriteLine($"[UpdateExam | EntityId={command.Id}] THÀNH CÔNG — Cập nhật cấu hình đề thi | UserId: {command.UserId}");
         return (true, string.Empty, 200);
     }
 }

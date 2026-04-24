@@ -1,31 +1,15 @@
 using EduScoring.Common.Extensions;
-using EduScoring.Features.Exams;
-using EduScoring.Features.Submissions;
-using EduScoring.Features.System;
-using EduScoring.Features.Users;
-using EduScoring.Common.Messaging;
-using EduScoring.Features.Auth.Features.Login;
-using EduScoring.Features.Auth.Features.Register;
-using EduScoring.Features.Exams.Features.CreateExam;
+
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ==========================================
-// 1.SERVICES
-// ==========================================
 builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
 
 var app = builder.Build();
 
-// ==========================================
-// 2. MIDDLEWARE PIPELINE
-// ==========================================
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
-}
 
 app.UseHttpsRedirection();
 app.UseCors();
@@ -33,23 +17,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// ==========================================
-// 3. FEATURE ENDPOINTS
-// ==========================================
-app.MapGetUsersEndpoint();
-app.MapCreateExamEndpoint();
-app.MapRegisterEndpoint();
-app.MapLoginEndpoint();
-//Exam
-//app.MapSubmitExamEndpoint();//
-//app.MapUpdateExamEndpoint();//
-//app.MapDeleteExamEndpoint();//
-//app.MapGetExamDetailEndpoint();//
-
-// ==========================================
-// 4. TEST ENDPOINTS
-// ==========================================
-app.MapTestEndpoints();
-
+app.MapAllEndpoints();
 
 await app.RunAsync();

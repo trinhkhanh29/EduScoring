@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using EduScoring.Common.Authentication;
 
 namespace EduScoring.Features.Exams.Features.CreateExam;
 
@@ -12,15 +14,28 @@ public static class CreateExamEndpoint
             ClaimsPrincipal user,
             CreateExamCommandHandler handler) =>
         {
-            // 1. Lấy TeacherId từ Token
+            // 1. Lấy UserId của người đang thao tác hệ thống (từ Token)
             var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdString, out Guid teacherId))
+            if (!Guid.TryParse(userIdString, out Guid currentUserId))
             {
                 return Results.Unauthorized();
             }
 
+            // Nếu user là Admin và có truyền TeacherId trong request thì dùng TeacherId đó (tạo hộ).
+            // Nếu không, thì lấy chính Id của người đang dùng (currentUserId).
+            bool isAdmin = user.IsInRole(AppRoles.Admin);
+            Guid finalTeacherId = (isAdmin && request.TeacherId.HasValue) 
+                ? request.TeacherId.Value 
+                : currentUserId;
+
             // 2. Gộp Request và TeacherId thành Command
-            var command = new CreateExamCommand(request.Title, request.Description, teacherId);
+            var command = new CreateExamCommand(
+                request.Title, 
+                request.Description, 
+                finalTeacherId,
+                request.AllowStudentSubmission,
+                request.RequireTeacherReview,
+                request.AllowAppeal);
 
             // 3. Đẩy xuống Handler xử lý
             var result = await handler.Handle(command);
@@ -32,7 +47,7 @@ public static class CreateExamEndpoint
 
             return Results.Ok(result.Data);
         })
-        .RequireAuthorization() // Chỉ người có Token (đăng nhập) mới được tạo
+        .RequireAuthorization(new AuthorizeAttribute { Roles = "Admin,Teacher" }) // Chỉ Admin,Teacher mới được tạo
         .WithTags("Exams");
     }
 }

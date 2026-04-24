@@ -10,21 +10,21 @@ public class RestoreExamCommandHandler
 
     public async Task<(bool IsSuccess, string SuccessMessage, string ErrorMessage, int StatusCode)> Handle(RestoreExamCommand command)
     {
-        var tag = $"[RestoreExamHandler | ExamId={command.Id}]";
+        var tag = $"[RestoreExam | EntityId={command.Id}]";
 
         // 1. Tìm exam (bỏ qua soft-delete filter)
         var exam = await _db.Exams.IgnoreQueryFilters().FirstOrDefaultAsync(e => e.Id == command.Id);
 
         if (exam == null)
         {
-            Console.WriteLine($"{tag} THẤT BẠI [404] — Không tìm thấy ExamId={command.Id} trong DB.");
+            Console.WriteLine($"{tag} THẤT BẠI [404] — Không tìm thấy EntityId={command.Id} trong DB.");
             return (false, string.Empty, "Không tìm thấy đề thi này trong hệ thống.", 404);
         }
 
         // 2. Kiểm tra trạng thái — không cần phục hồi nếu đang active
         if (!exam.IsDeleted)
         {
-            Console.WriteLine($"{tag} THẤT BẠI [400] — ExamId={command.Id} ('{exam.Title}') hiện đang active, không cần phục hồi.");
+            Console.WriteLine($"{tag} THẤT BẠI [400] — EntityId={command.Id} ('{exam.Title}') hiện đang active, không cần phục hồi.");
             return (false, string.Empty, "Đề thi này hiện đang hoạt động, không cần phục hồi.", 400);
         }
 

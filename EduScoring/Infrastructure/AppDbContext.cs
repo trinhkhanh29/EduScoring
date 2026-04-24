@@ -1,19 +1,16 @@
-using System.Linq.Expressions;
 using EduScoring.Data;
 using EduScoring.Data.Entities;
 using EduScoring.Features.Auth.Models;
 using EduScoring.Features.Exams.Models;
+using EduScoring.Features.Submissions.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduScoring.Infrastructure;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    // ===== DbSets =====
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
@@ -23,6 +20,8 @@ public class AppDbContext : DbContext
     public DbSet<Submission> Submissions { get; set; }
     public DbSet<SubmissionImage> SubmissionImages { get; set; }
     public DbSet<AiEvaluation> AiEvaluations { get; set; }
+    public DbSet<AiEvaluationDetail> AiEvaluationDetails { get; set; }
+    public DbSet<HumanEvaluation> HumanEvaluations { get; set; }
     public DbSet<Appeal> Appeals { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<TestEntry> TestEntries { get; set; }
@@ -31,135 +30,9 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // ==========================================
-        // 1. CHỈ GIỮ LẠI BỘ LỌC SOFT DELETE
-        // ==========================================
-        var baseEntityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(e => typeof(BaseEntity).IsAssignableFrom(e.ClrType))
-            .Select(e => e.ClrType);
-
-        foreach (var clrType in baseEntityTypes)
-        {
-            var parameter = Expression.Parameter(clrType, "e");
-            var propertyMethodInfo = typeof(EF).GetMethod("Property")?.MakeGenericMethod(typeof(bool));
-            var isDeletedProperty = Expression.Call(null, propertyMethodInfo!, parameter, Expression.Constant("IsDeleted"));
-            var compareExpression = Expression.Equal(isDeletedProperty, Expression.Constant(false));
-            var lambda = Expression.Lambda(compareExpression, parameter);
-
-            modelBuilder.Entity(clrType).HasQueryFilter(lambda);
-        }
-
-        // ==========================================
-        // 2. GIỮ NGUYÊN 100% MAPPING BẢN CŨ TRÁNH LỖI DB
-        // ==========================================
-
-        // ===== UserRole (Many-to-Many) =====
-        modelBuilder.Entity<UserRole>()
-            .HasKey(x => new { x.UserId, x.RoleId });
-
-        modelBuilder.Entity<UserRole>()
-            .HasOne(x => x.User)
-            .WithMany(x => x.UserRoles)
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<UserRole>()
-            .HasOne(x => x.Role)
-            .WithMany(x => x.UserRoles)
-            .HasForeignKey(x => x.RoleId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // ===== Unique Token =====
-        modelBuilder.Entity<UserToken>()
-            .HasIndex(x => new { x.UserId, x.LoginProvider, x.Name })
-            .IsUnique();
-
-        // ===== Decimal precision (PostgreSQL NUMERIC) =====
-        modelBuilder.Entity<Rubric>()
-            .Property(x => x.MaxScore)
-            .HasPrecision(5, 2);
-
-        modelBuilder.Entity<Submission>()
-            .Property(x => x.TotalScore)
-            .HasPrecision(5, 2);
-
-        modelBuilder.Entity<Submission>()
-            .HasIndex(x => new { x.ExamId, x.StudentId })
-            .IsUnique();
-
-        modelBuilder.Entity<AiEvaluation>()
-            .Property(x => x.AwardedScore)
-            .HasPrecision(5, 2);
-
-        // ===== Relationships =====
-
-        modelBuilder.Entity<Exam>()
-            .HasOne(x => x.Teacher)
-            .WithMany()
-            .HasForeignKey(x => x.TeacherId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<Submission>()
-            .HasOne(x => x.Student)
-            .WithMany()
-            .HasForeignKey(x => x.StudentId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<Submission>()
-            .HasOne(x => x.Exam)
-            .WithMany()
-            .HasForeignKey(x => x.ExamId);
-
-        modelBuilder.Entity<SubmissionImage>()
-            .HasOne(x => x.Submission)
-            .WithMany(x => x.Images)
-            .HasForeignKey(x => x.SubmissionId);
-
-        modelBuilder.Entity<AiEvaluation>()
-            .HasOne(x => x.Submission)
-            .WithMany(x => x.Evaluations)
-            .HasForeignKey(x => x.SubmissionId);
-
-        modelBuilder.Entity<AiEvaluation>()
-            .HasOne(x => x.Rubric)
-            .WithMany()
-            .HasForeignKey(x => x.RubricId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<Appeal>()
-            .HasOne(x => x.Submission)
-            .WithMany()
-            .HasForeignKey(x => x.SubmissionId);
-
-        modelBuilder.Entity<Role>().HasData(
-                new Role { Id = 1, Name = EduScoring.Common.Authentication.AppRoles.Admin, Description = "Quản trị viên hệ thống" },
-                new Role { Id = 2, Name = EduScoring.Common.Authentication.AppRoles.Teacher, Description = "Giảng viên (Tạo đề, xem điểm)" },
-                new Role { Id = 3, Name = EduScoring.Common.Authentication.AppRoles.Student, Description = "Sinh viên (Nộp bài)" }
-        );
-
-        modelBuilder.Entity<ActivityLog>()
-            .HasOne(x => x.User)
-            .WithMany()
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // AppDbContext.cs — trong OnModelCreating
-        modelBuilder.Entity<ActivityLog>()
-            .HasQueryFilter(a => !a.User.IsDeleted);
-
-        modelBuilder.Entity<UserRole>()
-            .HasQueryFilter(ur => !ur.User.IsDeleted);
-
-        modelBuilder.Entity<UserToken>()
-            .HasQueryFilter(ut => !ut.User.IsDeleted);
-
-        modelBuilder.Entity<AiEvaluation>()
-            .HasQueryFilter(ai => !ai.Submission.IsDeleted);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly); //moi entity co 1 file config rieng, ko can cau hinh trong onmodelcreating nua
     }
 
-    // ==========================================
-    // 3. OVERRIDE CHO SOFT DELETE AUTO
-    // ==========================================
     public override int SaveChanges()
     {
         HandleSoftDelete();
@@ -180,12 +53,10 @@ public class AppDbContext : DbContext
         foreach (var entry in entries)
         {
             entry.State = EntityState.Modified;
-
             var entity = (BaseEntity)entry.Entity;
             entity.IsDeleted = true;
             entity.DeletedAt = DateTimeOffset.UtcNow;
-
-            Console.WriteLine($"[SOFT DELETE AUTO] Đã ẩn thực thể {entry.Entity.GetType().Name}");
+            Console.WriteLine($"[SOFT DELETE] {entry.Entity.GetType().Name} đã bị ẩn.");
         }
     }
 }
