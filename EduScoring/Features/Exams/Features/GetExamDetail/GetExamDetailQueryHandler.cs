@@ -6,8 +6,8 @@ namespace EduScoring.Features.Exams.Features.GetExamDetail;
 
 public class GetExamDetailQueryHandler
 {
-    private readonly AppDbContext _db;
-    public GetExamDetailQueryHandler(AppDbContext db) => _db = db;
+    private readonly AppReadDbContext _db;
+    public GetExamDetailQueryHandler(AppReadDbContext db) => _db = db;
 
     public async Task<(bool IsSuccess, ExamDetailDto? Data, string ErrorMessage, int StatusCode)> Handle(GetExamDetailQuery query)
     {
@@ -16,7 +16,6 @@ public class GetExamDetailQueryHandler
         // 1. Dùng AsNoTracking theo chuẩn CQRS và Select map tĩnh (hiệu năng cao nhất)
         var exam = await _db.Exams
             .IgnoreQueryFilters()
-            .AsNoTracking()
             .Where(e => e.Id == query.Id)
             .Select(e => new 
             {

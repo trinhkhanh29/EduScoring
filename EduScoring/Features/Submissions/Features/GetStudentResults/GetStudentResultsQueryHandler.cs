@@ -9,17 +9,17 @@ namespace EduScoring.Features.Submissions.Features.GetStudentResults;
 
 public class GetStudentResultsQueryHandler
 {
-    private readonly AppDbContext _db;
+    private readonly AppReadDbContext _db;
 
-    public GetStudentResultsQueryHandler(AppDbContext db)
+    public GetStudentResultsQueryHandler(AppReadDbContext db)
     {
         _db = db;
     }
 
     public async Task<List<StudentResultDto>> Handle(GetStudentResultsQuery query)
     {
+
         var results = await _db.Submissions
-            .AsNoTracking()
             .Where(s => s.StudentId == query.StudentId)
             .Select(s => new StudentResultDto(
                 s.Id,

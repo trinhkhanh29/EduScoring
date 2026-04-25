@@ -10,16 +10,16 @@ namespace EduScoring.Features.Submissions.Features.CompareAiVsHuman;
 
 public class CompareAiVsHumanQueryHandler
 {
-    private readonly AppDbContext _db;
+    private readonly AppReadDbContext _db;
 
-    public CompareAiVsHumanQueryHandler(AppDbContext db)
+    public CompareAiVsHumanQueryHandler(AppReadDbContext db)
     {
         _db = db;
     }
 
     public async Task<(bool IsSuccess, CompareResultDto? Data, string ErrorMessage, int StatusCode)> Handle(CompareAiVsHumanQuery query)
     {
-        var exam = await _db.Exams.AsNoTracking().FirstOrDefaultAsync(e => e.Id == query.ExamId);
+        var exam = await _db.Exams.FirstOrDefaultAsync(e => e.Id == query.ExamId);
         if (exam == null)
             return (false, null, "Không tìm thấy đề thi.", 404);
 
@@ -27,7 +27,6 @@ public class CompareAiVsHumanQueryHandler
             return (false, null, "Bạn không có quyền xem thống kê này.", 403);
 
         var validSubmissions = await _db.Submissions
-            .AsNoTracking()
             .Where(s => s.ExamId == query.ExamId && s.LatestAiScore.HasValue && s.HumanScore.HasValue)
             .ToListAsync();
 

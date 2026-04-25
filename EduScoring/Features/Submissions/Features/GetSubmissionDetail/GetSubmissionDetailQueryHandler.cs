@@ -9,9 +9,9 @@ namespace EduScoring.Features.Submissions.Features.GetSubmissionDetail;
 
 public class GetSubmissionDetailQueryHandler
 {
-    private readonly AppDbContext _db;
+    private readonly AppReadDbContext _db;
 
-    public GetSubmissionDetailQueryHandler(AppDbContext db)
+    public GetSubmissionDetailQueryHandler(AppReadDbContext db)
     {
         _db = db;
     }
@@ -21,7 +21,6 @@ public class GetSubmissionDetailQueryHandler
         var tag = $"[GetSubmissionDetail | EntityId={query.SubmissionId}]";
 
         var submissionData = await _db.Submissions
-            .AsNoTracking()
             .Where(s => s.Id == query.SubmissionId)
             .Select(s => new
             {
