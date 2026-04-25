@@ -23,7 +23,27 @@ public static class ServiceCollectionExtensions
             Console.WriteLine("[STARTUP][CRITICAL] Thiếu ConnectionStrings:DefaultConnection trong config.");
             throw new InvalidOperationException("Thiếu connection string 'DefaultConnection'.");
         }
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        var writeConnection = config.GetConnectionString("WriteDb");
+        var readConnection = config.GetConnectionString("ReadDb");
+
+        if (string.IsNullOrWhiteSpace(writeConnection))
+            throw new InvalidOperationException("Thiếu connection string 'WriteDb'.");
+
+        if (string.IsNullOrWhiteSpace(readConnection))
+            throw new InvalidOperationException("Thiếu connection string 'ReadDb'.");
+
+
+        // WRITE DB
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(writeConnection));
+
+
+        // READ DB
+        services.AddDbContext<AppReadDbContext>(options =>
+            options.UseNpgsql(readConnection)
+                   .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
+
+        Console.WriteLine("[STARTUP][DB] Registered AppDbContext + AppReadDbContext.");
         Console.WriteLine("[STARTUP][DB] Đã đăng ký AppDbContext với Npgsql.");
 
         // ── 2. Cloudinary

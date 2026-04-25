@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using EduScoring.Infrastructure;
 using EduScoring.Features.Submissions.Models;
@@ -24,18 +21,14 @@ public class UploadSubmissionImagesCommandHandler
         var tag = $"[UploadSubmissionImages | EntityId={command.SubmissionId}]";
 
         if (command.ImageUrls == null || !command.ImageUrls.Any())
-        {
             return (false, string.Empty, "Danh sách URL ảnh không được để trống.", 400);
-        }
 
         var submission = await _db.Submissions
             .Include(s => s.Exam)
             .FirstOrDefaultAsync(s => s.Id == command.SubmissionId);
 
         if (submission == null)
-        {
             return (false, string.Empty, "Không tìm thấy bài nộp.", 404);
-        }
 
         if (submission.IsLocked)
         {
@@ -43,43 +36,43 @@ public class UploadSubmissionImagesCommandHandler
             return (false, string.Empty, "Bài thi đã bị khóa sổ, không thể thay đổi hoặc cập nhật dữ liệu!", 400);
         }
 
-        bool isAuthorized = command.IsAdmin || 
-                            submission.StudentId == command.UserId || 
-                            (submission.Exam != null && submission.Exam.TeacherId == command.UserId);
+        bool isAuthorized = command.IsAdmin
+            || submission.StudentId == command.UserId
+            || (submission.Exam != null && submission.Exam.TeacherId == command.UserId);
 
         if (!isAuthorized)
         {
+            Console.WriteLine($"{tag} THẤT BẠI [403] — UserId: {command.UserId} không có quyền.");
             return (false, string.Empty, "Bạn không có quyền tải ảnh cho bài nộp này.", 403);
         }
 
-        var count = 0;
-        foreach (var url in command.ImageUrls)
-        {
-            if (!string.IsNullOrWhiteSpace(url))
+        // ── S3267: filter trước bằng Where, sau đó mới iterate ───────────────
+        var now = DateTimeOffset.UtcNow;
+        var images = command.ImageUrls
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Select((url, index) => new SubmissionImage
             {
-                _db.SubmissionImages.Add(new SubmissionImage
-                {
-                    SubmissionId = submission.Id,
-                    ImageUrl = url,
-                    UploadedAt = DateTimeOffset.UtcNow
-                });
-                count++;
-            }
-        }
+                SubmissionId = submission.Id,
+                ImageUrl = url,
+                PageNumber = index + 1,
+                UploadedAt = now
+            })
+            .ToList();
 
-        if (count == 0)
-        {
+        if (images.Count == 0)
             return (false, string.Empty, "Không tìm thấy URL hợp lệ trong danh sách.", 400);
-        }
 
+        _db.SubmissionImages.AddRange(images);
         submission.Status = "ImagesUploaded";
 
         await _db.SaveChangesAsync();
 
-        await _rabbitMQ.PublishAsync("submission_images_uploaded_queue", new SubmissionImagesUploadedEvent(submission.Id));
+        await _rabbitMQ.PublishAsync(
+            "submission_images_uploaded_queue",
+            new SubmissionImagesUploadedEvent(submission.Id));
 
-        Console.WriteLine($"{tag} THÀNH CÔNG — {count} images uploaded");
+        Console.WriteLine($"{tag} THÀNH CÔNG — {images.Count} images uploaded.");
 
-        return (true, $"Đã upload thành công {count} ảnh.", string.Empty, 200);
+        return (true, $"Đã upload thành công {images.Count} ảnh.", string.Empty, 200);
     }
 }
